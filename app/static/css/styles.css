@@ -1,0 +1,343 @@
+/* styles.css */
+
+/* Basic Reset */
+* {
+    margin-top: 10px;
+    margin-right: 20px;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 18px;
+}
+h3 {
+    color: #333;
+    margin-bottom: 16px;
+}
+h4 {
+    margin: 0 auto;
+    text-align: center;
+    color: #333;
+    margin-bottom: 14px;
+
+}
+a {
+    text-decoration: none;
+    color: #007BFF;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"],
+textarea {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input[type="text"],
+select {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input[type="email"],
+textarea {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input[type="password"],
+textarea {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input[type=submit] , button {
+    width: 70%;
+    display: inline-block;
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background: #0056b3;
+}
+
+.radio-group {
+    margin-bottom: 20px;
+}
+
+
+/* Table container for optional styling */
+.table-container {
+    width: 100%;
+    margin: 20px 0;
+    overflow-x: auto; /* Add horizontal scroll for smaller screens */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Main table styling */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove gaps between table cells */
+    background-color: #fff;
+    text-align: left;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Table header styling */
+thead {
+    background-color: #333;
+    color: #fff;
+}
+
+th {
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Table body styling */
+tbody tr {
+    border-bottom: 1px solid #ddd;
+}
+
+td {
+    padding: 12px 15px;
+    font-size: 14px;
+}
+
+/* Alternating row colors */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Hover effect on rows */
+tbody tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+/* Responsive table with scrollbar */
+@media screen and (max-width: 768px) {
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto; /* Allows horizontal scrolling */
+        white-space: nowrap;
+    }
+
+    /* Adjust padding for mobile */
+    th, td {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+/* Optional: Styling buttons inside the table (like edit/delete) */
+table .btn {
+    padding: 6px 12px;
+    margin: 2px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+table .btn-danger {
+    background-color: #dc3545;
+}
+
+
+
+
+
+
+table, th, td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: left;
+}
+
+
+
+ul {
+    list-style-type: none;
+}
+
+ul li {
+    margin: 10px 0;
+}
+
+
+
+.questions-container {
+    padding: 20px;
+}
+
+.question-box {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.answers {
+    margin-top: 10px;
+}
+
+.answer-item {
+    margin-left: 20px;
+    position: relative; /* Allows absolute positioning for badge */
+}
+
+.answer-label {
+    font-weight: bold;
+    margin-right: 10px; /* Spacing between label and answer text */
+}
+
+.badge {
+    position: absolute; /* Positioning for the badge */
+    right: 0; /* Aligns to the right */
+    background-color: green; /* Green background for correct answers */
+    color: white; /* White text for the badge */
+    padding: 2px 5px; /* Padding for better appearance */
+    border-radius: 3px; /* Rounded corners */
+}
+
+
+
+
+
+
+/* Custom styles */
+.styled-block {
+    background-color: #f9f9f9;  /* Light background */
+    border-radius: 10px;        /* Rounded corners */
+    padding: 20px;              /* Padding for inner content */
+    margin-bottom: 20px;        /* Space between sections */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.styled-block h3 {
+    margin-bottom: 15px;        /* Extra spacing below headers */
+}
+
+.styled-block ul, .styled-block menu {
+    list-style-type: none;      /* Remove bullet points */
+    padding-left: 0;            /* Remove default padding */
+}
+
+.styled-block li {
+    padding: 10px 0;            /* Spacing between list items */
+    border-bottom: 1px solid #ddd; /* Separator between list items */
+}
+
+.styled-block li:last-child {
+    border-bottom: none;        /* Remove border on last item */
+}
+
+.styled-block a {
+    text-decoration: none;      /* Remove underline from links */
+    color: #007bff;             /* Bootstrap primary color */
+    font-weight: bold;          /* Bold text for links */
+}
+
+.styled-block a:hover {
+    text-decoration: underline; /* Add underline on hover for interactivity */
+}
+
+.btn-primary-custom {
+    background-color: #007bff;  /* Primary color */
+    color: #fff;
+    border-radius: 5px;         /* Rounded corners for buttons */
+    padding: 10px 20px;
+    text-decoration: none;      /* Remove link underline */
+    font-weight: bold;          /* Make the text bold */
+}
+
+.btn-primary-custom:hover {
+    background-color: #0056b3;  /* Darken on hover */
+}
+
+.btn-primary-custom1 {
+    background-color: #36c0c5;  /* Primary color */
+    color: #b57f37;
+    border-radius: 5px;         /* Rounded corners for buttons */
+    padding: 10px 20px;
+    text-decoration: none;      /* Remove link underline */
+    font-weight: bold;          /* Make the text bold */
+}
+
+.btn-primary-custom1:hover {
+    background-color: #65b6af;  /* Darken on hover */
+}
+
+/* Add this CSS to your stylesheet */
+.description-text {
+    display: inline-block;
+    text-indent: 0; /* No indentation for the first line */
+    padding-left: 1.5em; /* Padding for alignment */
+    margin: 0;
+    line-height: 1.6; /* Optional: improve readability with line height */
+}
+
+.description-text::before {
+    content: '';
+    display: block;
+    width: 1.5em;
+    float: left;
+    height: 100%;
+}
+
+li {
+    margin-bottom: 1em;
+}

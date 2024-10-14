@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Welcome, {{ current_user.first_name }}!</h2>
+
+    <!-- Manage Courses Button -->
+<!--    <div class="mb-4">-->
+<!--        <a href="{{ url_for('manage_courses') }}" class="btn-primary-custom">Manage Courses</a>-->
+<!--    </div>-->
+
+    <!-- Styled block for courses -->
+    <div class="styled-block">
+        <h3>Your Courses [<a href="{{ url_for('add_course') }}" >Add Course</a>]</h3>
+        <menu>
+            {% for course in courses %}
+            <li>
+                <strong>{{ course.name }}:</strong> <br>
+                <span class="description-text">{{ course.description }}</span><br>
+                <a  href="{{ url_for('add_question', course_id=course.id) }}" >Add Questions/Answers</a> |
+                <a href="{{ url_for('manage_questions', course_id=course.id) }}">Manage Questions</a> |
+                <a href="{{ url_for('manage_exams', course_id=course.id) }}">Manage Exams</a> |
+                <a href="{{ url_for('create_exam', course_id=course.id) }}">Create New Exam</a>
+            </li>
+            {% endfor %}
+        </menu>
+    </div>
+
+    <!-- Styled block for exams -->
+    <div class="styled-block">
+        <h3>Your Exams</h3>
+        <ul>
+            {% for exam in exams %}
+            <li>
+                <strong>{{ exam.title }}:</strong> <span>Passing Grade: {{ exam.passing_grade }}%</span><br>
+                <a href="{{ url_for('manage_exams', course_id=exam.course_id) }}" >Manage Exam</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Styled block for student results -->
+    <div class="styled-block">
+        <h3>Student Results</h3>
+        <ul>
+            {% for result in results %}
+            <li>
+                <a href="{{ url_for('view_results', exam_id=result.exam_id) }}">View Results for Exam: {{ result.exam.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Edit Question</title>
+</head>
+<body>
+    <h2>Edit Question</h2>
+
+    <form method="POST">
+        <!-- Question Text -->
+        <label for="question_text">Question:</label>
+        <input type="text" name="question_text" id="question_text" value="{{ question.question_text }}" required><br>
+
+        <!-- Difficulty -->
+        <label for="difficulty">Difficulty:</label>
+        <select name="difficulty" id="difficulty" required>
+            <option value="easy" {% if question.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+            <option value="medium" {% if question.difficulty == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="hard" {% if question.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+        </select><br>
+
+        <!-- Answers -->
+        <label for="answer1">Answer 1:</label>
+        <input type="text" name="answer1" id="answer1" value="{{ question.answers[0].answer_text }}" required><br>
+
+        <label for="answer2">Answer 2:</label>
+        <input type="text" name="answer2" id="answer2" value="{{ question.answers[1].answer_text }}" required><br>
+
+        <label for="answer3">Answer 3:</label>
+        <input type="text" name="answer3" id="answer3" value="{{ question.answers[2].answer_text }}" required><br>
+
+        <label for="answer4">Answer 4:</label>
+        <input type="text" name="answer4" id="answer4" value="{{ question.answers[3].answer_text }}" required><br>
+
+        <!-- Correct Answer -->
+        <label for="correct_answer">Correct Answer:</label>
+        <select name="correct_answer" id="correct_answer" required>
+            <option value="1" {% if question.answers[0].is_correct %}selected{% endif %}>Answer 1</option>
+            <option value="2" {% if question.answers[1].is_correct %}selected{% endif %}>Answer 2</option>
+            <option value="3" {% if question.answers[2].is_correct %}selected{% endif %}>Answer 3</option>
+            <option value="4" {% if question.answers[3].is_correct %}selected{% endif %}>Answer 4</option>
+        </select><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+    <h4>
+    <a href="{{ url_for('teacher_panel') }}">Teacher Panel</a>|
+    <a href="{{ url_for('logout') }}">Logout</a>
+        </h4>
+</body>
+</html>

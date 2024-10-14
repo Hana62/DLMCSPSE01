@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Manage Your Courses</h2>
+    <ul>
+        {% for course in courses %}
+        <li>
+            {{ course.name }} - {{ course.description }}<br>
+             <a href="{{ url_for('add_question', course_id=course.id) }}">Add Questions/Answers</a>|
+            &emsp;<a href="{{ url_for('manage_questions', course_id=course.id) }}">Manage Questions</a>|
+             <a href="{{ url_for('manage_exams', course_id=course.id) }}">Manage Exams</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+    <h4>
+        <a href="{{ url_for('teacher_panel') }}">Add a New Course</a>|
+<!--        <a href="{{ url_for('manage_courses') }}">Manage Courses</a>|-->
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </h4>
+{% endblock %}

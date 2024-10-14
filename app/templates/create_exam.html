@@ -1,0 +1,35 @@
+<!-- templates/create_exam.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Create Exam for {{ course.name }}</h2>
+
+<form method="POST">
+    <input type="hidden" name="course_id" value="{{ course.id }}">
+    <div>
+        <label for="title">Exam Title:</label>
+        <input type="text" name="title" required>
+    </div>
+    <div>
+        <label for="number_of_questions">Number of Questions:</label>
+        <input type="number" name="number_of_questions" required>
+    </div>
+    <div>
+        <label for="passing_grade">Passing Grade (%):</label>
+        <input type="number" name="passing_grade" required>
+    </div>
+    <div>
+        <label for="date_scheduled">Date Scheduled:</label>
+        <input type="date" name="date_scheduled" required>
+    </div>
+    <div>
+        <label for="duration">Duration (minutes):</label>
+        <input type="number" name="duration" required>
+    </div>
+    <button type="submit">Create Exam</button>
+</form>
+
+<a href="{{ url_for('manage_exams', course_id=course.id) }}">Back to Exam Management</a>
+
+{% endblock %}

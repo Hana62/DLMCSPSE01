@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Exam Questions for {{ exam.title }}</h2>
+
+<div class="questions-container">
+    {% for question in question_data %}
+        <div class="question-box">
+            <h4>{{ loop.index }}. {{ question.question_text }}</h4>
+            <div class="answers">
+                {% for answer in question.answers %}
+                    <div class="answer-item">
+                        {% set answer_letter = "abcdefghijklmnopqrstuvwxyz"[loop.index0] %}  <!-- Get letter (a, b, c, ...) -->
+                        <span class="answer-label">{{ answer_letter | upper }})</span>  <!-- Display answer letter -->
+                        {{ answer.answer_text }}
+                        {% if answer.is_correct %}
+                            <span class="badge bg-success">Correct</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <p class="difficulty"><em>Difficulty: {{ question.difficulty }}</em></p>
+        </div>
+    {% endfor %}
+</div>
+
+<a href="{{ url_for('manage_exams', course_id=exam.course_id) }}" class="btn btn-primary">Back to Manage Exams</a>
+{% endblock %}

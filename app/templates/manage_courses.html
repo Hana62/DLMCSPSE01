@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Manage Courses</title>
+</head>
+<body>
+    <h1>Your Courses</h1>
+    <a href="{{ url_for('add_course') }}">Add New Course</a>
+
+    <ul>
+        {% for course in courses %}
+        <li>
+            <a href="{{ url_for('manage_questions', course_id=course.id) }}">{{ course.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <h4>
+    <a href="{{ url_for('teacher_panel') }}">Teacher Panel</a>|
+    <a href="{{ url_for('logout') }}">Logout</a>
+        </h4>
+</body>
+</html>

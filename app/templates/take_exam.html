@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Take Exam</title>
+</head>
+<body>
+    <h1>Take Exam</h1>
+<form method="POST" action="{{ url_for('submit_exam') }}">
+    {% for question in questions %}
+    <div class="question-block">
+        <p>{{ question.text }}</p>
+        <div class="radio-group">
+            {% for option in question.options %}
+            <label>
+                <input type="radio" id="option{{ option.id }}" name="question{{ question.id }}" value="{{ option.text }}" required>
+                {{ option.text }}
+            </label><br>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
+

@@ -1,0 +1,303 @@
+# from flask_login import login_user, logout_user, current_user, login_required
+# from flask import current_app as app
+# from flask import render_template, request, redirect, url_for, flash
+# from .models import User
+# from . import db, bcrypt
+# from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
+# from werkzeug.security import check_password_hash
+# from yourapp import db  # Adjust the import based on your app structure
+
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+from flask import current_app as app
+from flask import render_template, request, redirect, url_for, flash
+from .models import User, Course, Exam, Question, Answer, Evaluation
+from . import db, bcrypt
+
+
+
+# Ensure imports are not duplicated
+from werkzeug.security import check_password_hash
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    print("Login route accessed")  # Debug statement
+    if request.method == 'POST':
+        print("POST request detected")  # Debug statement
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Fetch user from the database
+        user = User.query.filter_by(username=username).first()
+
+        # Check if user exists and password is correct
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)  # Log the user in
+            flash("Login successful!")
+
+            # Redirect based on user role
+            if user.role == 'Teacher':
+                return redirect(url_for('teacher_panel'))  # Teacher panel route
+            else:
+                return redirect(url_for('student_panel'))  # Student panel route
+        else:
+            flash("Invalid username or password.")
+            return render_template('login.html')  # Return to login page with error
+
+    # Render the login page for GET request
+    return render_template('login.html')  # Make sure to always return the template for GET requests
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()  # Log the user out
+    flash("Logout successful!")
+    return redirect(url_for('login'))  # Redirect to login page
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        email = request.form.get('email')
+        role = request.form.get('role')  # Capture the role ("Student" or "Teacher")
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        new_user = User(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            password=hashed_password,
+            email_address=email,
+            role=role  # Save the selected role
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Registration successful!")
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+
+@app.route('/admin')
+@login_required
+def admin():
+    if current_user.role != 'Teacher':  # Assuming role is used consistently here
+        return redirect(url_for('index'))
+    # Admin panel logic
+    return render_template('admin.html')
+
+
+@app.route('/add_question/<int:course_id>', methods=['GET', 'POST'])
+@login_required
+def add_question(course_id):
+    if request.method == 'POST':
+        try:
+            # Get the form data
+            question_text = request.form['question_text']
+            difficulty = request.form['difficulty']
+
+            # Create a new Question
+            new_question = Question(
+                question_text=question_text,
+                difficulty=difficulty,
+                course_id=course_id,
+                added_by=current_user.id
+            )
+            db.session.add(new_question)
+            db.session.flush()  # Flush the session to get the question ID for answers
+
+            # Get the answers from the form
+            answer1 = request.form['answer1']
+            answer2 = request.form['answer2']
+            answer3 = request.form['answer3']
+            answer4 = request.form['answer4']
+            correct_answer = int(request.form['correct_answer'])  # Correct answer is provided as 1-4
+
+            # Add answers to the database, marking the correct one
+            answers = [
+                Answer(answer_text=answer1, question_id=new_question.id, is_correct=(correct_answer == 1)),
+                Answer(answer_text=answer2, question_id=new_question.id, is_correct=(correct_answer == 2)),
+                Answer(answer_text=answer3, question_id=new_question.id, is_correct=(correct_answer == 3)),
+                Answer(answer_text=answer4, question_id=new_question.id, is_correct=(correct_answer == 4))
+            ]
+            db.session.add_all(answers)
+            db.session.commit()
+
+            flash('Question and answers added successfully!')
+            return redirect(url_for('manage_questions', course_id=course_id))
+
+        except KeyError as e:
+            flash(f"Missing form field: {str(e)}")
+            return render_template('add_question.html', course_id=course_id)
+
+    return render_template('add_question.html', course_id=course_id)
+    # return redirect(url_for('manage_questions', course_id=question.course_id))
+
+
+@app.route('/manage_courses')
+@login_required
+def manage_courses():
+    if current_user.role != 'Teacher':
+        flash("You are not authorized to view this page!")
+        return redirect(url_for('index'))
+
+    courses = Course.query.filter_by(teacher_id=current_user.id).all()
+    return render_template('manage_courses.html', courses=courses)
+
+@app.route('/manage_questions/<int:course_id>', methods=['GET'])
+@login_required
+def manage_questions(course_id):
+    # Ensure the current user is a teacher or has permissions
+    if current_user.role != 'Teacher':
+        flash('You do not have permission to manage questions.')
+        return redirect(url_for('index'))
+
+    # Fetch all questions for the given course, along with their answers
+    questions = Question.query.filter_by(course_id=course_id).all()
+
+    # Pass course_id to the template
+    return render_template('manage_questions.html', questions=questions, course_id=course_id)
+
+
+
+@app.route('/edit_question/<int:question_id>', methods=['GET', 'POST'])
+@login_required
+def edit_question(question_id):
+    # Get the question from the database
+    question = Question.query.get_or_404(question_id)
+
+    # Ensure the current user is a teacher and owns the question
+    if current_user.role != 'Teacher':
+        flash('You do not have permission to edit this question.')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        try:
+            # Update the question text and difficulty
+            question.question_text = request.form['question_text']
+            question.difficulty = request.form['difficulty']
+
+            # Update the answers
+            question.answers[0].answer_text = request.form['answer1']
+            question.answers[1].answer_text = request.form['answer2']
+            question.answers[2].answer_text = request.form['answer3']
+            question.answers[3].answer_text = request.form['answer4']
+
+            # Update the correct answer
+            correct_answer = int(request.form['correct_answer'])
+            for i, answer in enumerate(question.answers):
+                answer.is_correct = (i + 1 == correct_answer)
+
+            db.session.commit()
+            flash('Question updated successfully!')
+            return redirect(url_for('manage_questions', course_id=question.course_id))
+
+        except KeyError as e:
+            flash(f"Missing form field: {str(e)}")
+
+    return render_template('edit_question.html', question=question)
+
+
+@app.route('/delete_question/<int:question_id>', methods=['POST'])
+@login_required
+def delete_question(question_id):
+    # Ensure the current user is a teacher or has permissions
+    if current_user.role != 'Teacher':
+        flash('You do not have permission to delete questions.')
+        return redirect(url_for('index'))
+
+    # Find the question by ID
+    question = Question.query.get_or_404(question_id)
+
+    # Delete the question and all its associated answers
+    db.session.delete(question)
+    db.session.commit()
+
+    flash('Question and its answers have been deleted successfully.')
+    return redirect(url_for('manage_questions', course_id=question.course_id))
+
+
+
+@app.route('/take_exam/<int:exam_id>', methods=['GET', 'POST'])
+@login_required
+def take_exam(exam_id):
+    # Student taking exam logic
+    pass
+
+
+@app.route('/grade_exam/<int:exam_id>', methods=['POST'])
+@login_required
+def grade_exam(exam_id):
+    # Grade the exam logic
+    pass
+
+
+@app.route('/results/<int:exam_id>')
+@login_required
+def results(exam_id):
+    # Show exam results logic
+    pass
+
+
+@app.route('/student_panel')
+@login_required  # Ensure this route is protected for logged-in users
+def student_panel():
+    return render_template('student_panel.html')  # Ensure template exists
+
+
+@app.route('/teacher_panel')
+@login_required
+def teacher_panel():
+    # Assuming you have a Course model and you want to show all courses
+    courses = Course.query.all()  # Fetch courses from the database
+    return render_template('teacher_panel.html', courses=courses)  # Pass the courses to the template
+
+
+
+# Ensure the app is initialized in __init__.py or app.py
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+@app.route('/add_course', methods=['GET', 'POST'])
+@login_required
+def add_course():
+    if current_user.role != 'Teacher':
+        flash("You are not authorized to add courses!")
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+
+        new_course = Course(
+            name=name,
+            description=description,
+            teacher_id=current_user.id  # Link to the teacher
+        )
+
+        db.session.add(new_course)
+        db.session.commit()
+        flash("Course added successfully!")
+        return redirect(url_for('teacher_panel'))
+
+    return render_template('add_course.html')
+

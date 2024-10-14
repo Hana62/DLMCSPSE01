@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Exam Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Grade</th>
+                <th>Pass/Fail</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.user_id }}</td> <!-- You can expand to show student details -->
+                <td>{{ result.grade }}%</td>
+                <td>{{ 'Pass' if result.pass_or_fail else 'Fail' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
