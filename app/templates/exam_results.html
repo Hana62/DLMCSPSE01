@@ -1,0 +1,84 @@
+{% extends "base_student.html" %}
+
+{% block content %}
+    <h2>Exam Results</h2>
+    {% if evaluations %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Exam Title</th>
+                    <th>Course</th>
+                    <th>Scheduled Date</th>
+                    <th>Booking Date</th>
+                    <th>Submitted Date</th>
+                    <th>Correct Answers</th>
+                    <th>Grade (%)</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evaluation, exam_title, scheduled_date, booking_date in evaluations %}
+                    <tr>
+                        <td>{{ exam_title }}</td>
+                        <td>{{ evaluation.course.name }}</td>
+                        <td>{{ scheduled_date.strftime('%Y-%m-%d') if scheduled_date else 'N/A' }}</td>
+                        <td>{{ booking_date.strftime('%Y-%m-%d %H:%M') if booking_date else 'N/A' }}</td>
+                        <td>{{ evaluation.submission_date.strftime('%Y-%m-%d %H:%M') if evaluation.submission_date else 'N/A' }}</td>
+                        <td>{{ evaluation.corrected_count }} out of {{ evaluation.answered_count }}</td>
+                        <td>{{ evaluation.grade | round(2) }}</td>
+                        <td>{% if evaluation.pass_or_fail %}Passed{% else %}Failed{% endif %}</td>
+                        <td>
+                            <button onclick="openDetails({{ evaluation.exam_id }})">View Details</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No exam results available.</p>
+    {% endif %}
+
+    <div id="examDetailsModal" style="display:none;">
+        <h3>Exam Questions and Answers</h3>
+        <div id="examQuestionsContainer"></div>
+        <button onclick="closeDetails()">Close</button>
+    </div>
+
+    <script>
+        function openDetails(examId) {
+            fetch(`/exam_questions_answers/${examId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('examQuestionsContainer');
+                    container.innerHTML = ''; // Clear previous content
+
+                    data.questions.forEach(question => {
+                        const questionDiv = document.createElement('div');
+                        questionDiv.innerHTML = `
+                            <p><strong>Question:</strong> ${question.question_text}</p>
+                            <div>
+                                ${question.answers.map(answer => `
+                                    <label style="color: ${answer.is_correct ? 'green' : ''}">
+                                        <input type="radio" name="question_${question.id}"
+                                            value="${answer.answer_id}"
+                                            ${answer.is_selected ? 'checked' : ''}
+                                            disabled>
+                                        ${answer.answer_text}
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <hr>
+                        `;
+                        container.appendChild(questionDiv);
+                    });
+
+                    document.getElementById('examDetailsModal').style.display = 'block';
+                });
+        }
+
+        function closeDetails() {
+            document.getElementById('examDetailsModal').style.display = 'none';
+        }
+    </script>
+{% endblock %}

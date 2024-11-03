@@ -1,0 +1,78 @@
+{% extends "base_student.html" %}
+
+{% block content %}
+    <h2>My Courses</h2>
+    {% if courses %}
+        <ul>
+            {% for course in courses %}
+                <li>
+                    <h3>{{ course.name }}</h3>
+                    <p>{{ course.description }}</p>
+                    <h4>Upcoming Exams:</h4>
+                    {% if upcoming_exams[course.id] %}
+                        <ul>
+                            {% for exam in upcoming_exams[course.id] %}
+                                <li>
+                                    <strong>{{ exam.title }}</strong> - Scheduled on {{ exam.date_scheduled.strftime('%Y-%m-%d') }} for {{ exam.duration }} minutes.
+
+                                    {% if exam.id in completed_exams %}
+                                        <p><em>You took this exam before and you can see its details in the Exam Results section.</em></p>
+
+                                    {% elif exam.id in booked_exams %}
+                                        <p><em>You have already booked this exam.</em></p>
+
+                                        {% if exam.id in exam_countdowns %}
+                                            <div>
+                                                <p>Exam will be available to take on {{ exam.date_scheduled.strftime('%Y-%m-%d') }}.</p>
+                                                <p>Time Remaining: <span id="countdown-{{ exam.id }}"></span></p>
+                                                <button id="take-exam-{{ exam.id }}" disabled>Take Exam</button>
+                                            </div>
+
+                                            <script>
+                                                // Set the target time for the exam availability
+                                                let examStartDate = new Date('{{ exam.date_scheduled.strftime('%Y-%m-%d') }}T00:00:00');
+                                                let currentTime = new Date();
+                                                let timeRemaining = (examStartDate - currentTime) / 1000;
+
+                                                const countdownDisplay = document.getElementById('countdown-{{ exam.id }}');
+                                                const takeExamButton = document.getElementById('take-exam-{{ exam.id }}');
+
+                                                const countdown = setInterval(() => {
+                                                    if (timeRemaining > 0) {
+                                                        const days = Math.floor(timeRemaining / (3600 * 24));
+                                                        const hours = Math.floor((timeRemaining % (3600 * 24)) / 3600);
+                                                        const minutes = Math.floor((timeRemaining % 3600) / 60);
+                                                        const seconds = Math.floor(timeRemaining % 60);
+
+                                                        countdownDisplay.textContent = `${days}d ${hours}:${minutes}:${seconds}`;
+                                                        timeRemaining--;
+                                                    } else {
+                                                        clearInterval(countdown);
+                                                        countdownDisplay.textContent = "Exam is available!";
+                                                        takeExamButton.disabled = false;
+                                                    }
+                                                }, 1000);
+
+                                                takeExamButton.addEventListener('click', function() {
+                                                    window.location.href = "{{ url_for('take_exam', exam_id=exam.id) }}";
+                                                });
+                                            </script>
+                                        {% endif %}
+                                    {% else %}
+                                        <form action="{{ url_for('book_exam', exam_id=exam.id) }}" method="POST">
+                                            <button type="submit">Book Exam</button>
+                                        </form>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No upcoming exams for this course.</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You are not registered for any courses.</p>
+    {% endif %}
+{% endblock %}

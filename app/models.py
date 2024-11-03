@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, DateTimeField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
+from datetime import datetime
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Ensure autoincrement is enabled
@@ -12,8 +13,6 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(200), nullable=False)
     email_address = db.Column(db.String(120), unique=True, nullable=False)
     role = db.Column(db.String(10), default='Student')  # Role is now a string
-
-
 
 
 
@@ -27,6 +26,9 @@ class UserCourse(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)
 
+    user = db.relationship('User', backref='courses')  # Access user's courses
+    course = db.relationship('Course', backref='students')  # Access students in a course
+
 class Evaluation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     exam_id = db.Column(db.Integer, db.ForeignKey('exam.id'), primary_key=True)
@@ -35,6 +37,11 @@ class Evaluation(db.Model):
     corrected_count = db.Column(db.Integer, nullable=False)
     grade = db.Column(db.Integer, nullable=False)
     pass_or_fail = db.Column(db.Boolean, nullable=False)
+    submission_date = db.Column(db.DateTime, nullable=True)  # Add submission date
+
+    # Relationships for easy access in the template
+    exam = db.relationship('Exam', backref='evaluations')
+    course = db.relationship('Course', backref='evaluations')
 
 
 class Course(db.Model):
@@ -88,3 +95,9 @@ class ExamQuestion(db.Model):
     question = db.relationship('Question', backref=db.backref('exam_questions', lazy=True))
     course = db.relationship('Course', backref=db.backref('exam_questions', lazy=True))  # Add relationship to Course
 
+
+class ExamBooking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    exam_id = db.Column(db.Integer, db.ForeignKey('exam.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    booking_date = db.Column(db.DateTime, default=datetime.utcnow())

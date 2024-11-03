@@ -1,29 +1,73 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Take Exam</title>
-</head>
-<body>
-    <h1>Take Exam</h1>
-<form method="POST" action="{{ url_for('submit_exam') }}">
-    {% for question in questions %}
-    <div class="question-block">
-        <p>{{ question.text }}</p>
-        <div class="radio-group">
-            {% for option in question.options %}
-            <label>
-                <input type="radio" id="option{{ option.id }}" name="question{{ question.id }}" value="{{ option.text }}" required>
-                {{ option.text }}
-            </label><br>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-    <input type="submit" value="Submit">
-</form>
-</body>
-</html>
+{% extends "base_student_exam.html" %}
 
+{% block content %}
+<h2>Take Exam: {{ exam.title }}</h2>
+
+<!-- Countdown timer bar -->
+<div id="countdown" class="countdown-timer">
+    Time remaining: <span id="timer">Loading...</span>
+</div>
+
+<form id="examForm" action="{{ url_for('submit_exam', exam_id=exam.id) }}" method="POST">
+    {% for question in questions %}
+        <div class="question-block">
+            <h4>Question {{ loop.index }}:</h4>
+            <p class="question-text">{{ question.question_text }}</p>
+            <ul class="answer-list">
+                {% for answer in question.answers %}
+                <li>
+                    <label>
+                        <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}">
+                        <span class="answer-text">{{ answer.answer_text }}</span>
+                    </label>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="submit-button">Submit Exam</button>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const examId = {{ exam.id }};
+        const examDuration = {{ exam_duration }}; // Duration in seconds
+        const localStorageKey = `exam_${examId}_start_time`;
+
+        let startTime = localStorage.getItem(localStorageKey);
+
+        // If no start time is stored, set the current time as the start time
+        if (!startTime) {
+            startTime = Date.now();
+            localStorage.setItem(localStorageKey, startTime);
+        } else {
+            startTime = parseInt(startTime, 10);
+        }
+
+        const endTime = startTime + (examDuration * 1000);
+        const timerDisplay = document.getElementById("timer");
+
+        function updateCountdown() {
+            const now = Date.now();
+            const timeRemaining = Math.max(0, Math.floor((endTime - now) / 1000));
+
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            if (timeRemaining <= 0) {
+                clearInterval(interval);
+                timerDisplay.textContent = "Time's up!";
+                localStorage.removeItem(localStorageKey); // Clear localStorage
+                document.getElementById("examForm").submit(); // Auto-submit
+            }
+        }
+
+        // Initial countdown display and interval update
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+    });
+</script>
+
+{% endblock %}

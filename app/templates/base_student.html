@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Inline CSS for demonstration, ideally place this in your styles.css */
+        nav ul {
+            list-style-type: none; /* Remove bullet points */
+            padding: 0;
+            margin: 0;
+            display: flex; /* Display items in a row */
+            justify-content: space-around; /* Space items evenly across */
+            background-color: #eef0f6; /* Background color for nav bar */
+            border-radius: 20px; /* Rounded corners */
+            padding: 10px; /* Add padding inside the rounded box */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a subtle shadow */
+        }
+        nav ul li {
+            display: inline; /* Inline display for horizontal layout */
+        }
+        nav ul li a {
+            display: block;
+            color: white; /* Text color */
+            padding: 10px 20px; /* Spacing for links */
+            text-decoration: none; /* Remove underline */
+            border-radius: 5px; /* Slightly rounded link buttons */
+        }
+        nav ul li a:hover {
+            background-color: #b4cee4; /* Darker green for hover effect */
+        }
+    </style>
+</head>
+<body>
+    <div class="styled-block">
+        <header>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('student_panel') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('available_courses') }}">Available Courses</a></li>
+                    <li><a href="{{ url_for('my_courses') }}">My Courses</a></li>
+                    <li><a href="{{ url_for('exam_results') }}">Exam Results</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Flash message block -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}
+            <!-- Student-specific content will go here -->
+            {% endblock %}
+        </main>
+
+        <footer>
+            <p>Student Panel © 2024</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Login</title>
-    <link rel="stylesheet" href="static/styles.css">  <!-- Include your CSS -->
 </head>
 <body>
-    <div class="container">
+    <div class="styled-block">
         <h2>Login</h2>
         <form method="POST" action="{{ url_for('login') }}">
             <label for="username">Username:</label>
@@ -20,9 +19,15 @@
             <button type="submit">Login</button>
         </form>
 
+        <!-- Added links for registration and password recovery -->
+        <div class="additional-links">
+            <a href="{{ url_for('register') }}">Register</a> |
+            <a href="{{ url_for('forgot_password') }}">Forgotten your password?</a>
+        </div>
+
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <ul>
+                <ul class="flash-messages">
                 {% for message in messages %}
                     <li>{{ message }}</li>
                 {% endfor %}

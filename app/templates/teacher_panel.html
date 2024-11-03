@@ -4,11 +4,6 @@
 <div class="container">
     <h2>Welcome, {{ current_user.first_name }}!</h2>
 
-    <!-- Manage Courses Button -->
-<!--    <div class="mb-4">-->
-<!--        <a href="{{ url_for('manage_courses') }}" class="btn-primary-custom">Manage Courses</a>-->
-<!--    </div>-->
-
     <!-- Styled block for courses -->
     <div class="styled-block">
         <h3>Your Courses [<a href="{{ url_for('add_course') }}" >Add Course</a>]</h3>
@@ -39,16 +34,37 @@
         </ul>
     </div>
 
-    <!-- Styled block for student results -->
+<!-- Styled block for student results with statistics -->
     <div class="styled-block">
         <h3>Student Results</h3>
-        <ul>
-            {% for result in results %}
-            <li>
-                <a href="{{ url_for('view_results', exam_id=result.exam_id) }}">View Results for Exam: {{ result.exam.title }}</a>
-            </li>
-            {% endfor %}
-        </ul>
+        <table class="table table-bordered mt-3 table-sm"> <!-- Use 'table-sm' for smaller padding -->
+            <thead>
+                <tr>
+                    <th>Course</th>  <!-- Abbreviated to "Course" -->
+                    <th>Exam</th>    <!-- Abbreviated to "Exam" -->
+                    <th>Registered</th>  <!-- Shortened to "Registered" -->
+                    <th>Took Exam</th>  <!-- Shortened to "Took Exam" -->
+                    <th>Passed</th>  <!-- Shortened to "Passed" -->
+                    <th>Actions</th> <!-- Renamed to "Actions" -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in exam_stats %}
+                <tr>
+                    <td>{{ stat.course_name }}</td>
+                    <td>{{ stat.exam.title }}</td>
+                    <td>{{ stat.registered_count }}</td>
+                    <td>{{ stat.taken_count }}</td>
+                    <td>{{ stat.passed_count }}</td>
+                    <td>
+                        <a href="{{ url_for('view_results', exam_id=stat.exam.id) }}" class="btn btn-sm btn-info">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

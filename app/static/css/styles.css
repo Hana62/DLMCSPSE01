@@ -260,11 +260,16 @@ ul li {
 
 /* Custom styles */
 .styled-block {
-    background-color: #f9f9f9;  /* Light background */
-    border-radius: 10px;        /* Rounded corners */
-    padding: 20px;              /* Padding for inner content */
-    margin-bottom: 20px;        /* Space between sections */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    background-color: #f9f9f9;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.container .styled-block {
+    margin: 20px;
+    padding: 20px;
 }
 
 .styled-block h3 {
@@ -293,6 +298,20 @@ ul li {
 
 .styled-block a:hover {
     text-decoration: underline; /* Add underline on hover for interactivity */
+}
+
+/* Adjust button styling in .styled-block */
+.styled-block .btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #fff;
+    transition: background-color 0.2s;
+}
+
+.styled-block .btn:hover {
+    background-color: #0056b3;
 }
 
 .btn-primary-custom {
@@ -340,4 +359,160 @@ ul li {
 
 li {
     margin-bottom: 1em;
+}
+
+
+/* Countdown Timer Style */
+.countdown-timer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f8d7da;
+    padding: 10px;
+    text-align: center;
+    font-size: 1.2em;
+    color: #721c24;
+    font-weight: bold;
+    z-index: 1000;
+}
+
+/* Question Block Style */
+.question-block {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.question-block h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.question-text {
+    margin: 10px 0;
+    font-size: 1em;
+    color: #555;
+}
+
+/* Answer List Style */
+.answer-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.answer-list li {
+    margin-bottom: 8px;
+}
+
+.answer-list input[type="radio"] {
+    margin-right: 8px;
+}
+
+.answer-text {
+    font-size: 1em;
+    color: #333;
+}
+
+/* Submit Button Style */
+.submit-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+
+/* Basic table styling */
+.exam-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.exam-table th, .exam-table td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+/* Header styling */
+.exam-table thead {
+    background-color: #f2f2f2;
+}
+
+.exam-table th {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Row styling */
+.exam-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.exam-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Button styling */
+.exam-table button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    /* Compact table headers and cells */
+    .table th, .table td {
+        padding: 0.3rem 0.5rem;  /* Reduces padding */
+        font-size: 0.9rem;       /* Reduces font size */
+    }
+
+    /* Adjust button size within the table */
+    .table .btn-info {
+        padding: 0.2rem 0.5rem;  /* Smaller button padding */
+        font-size: 0.85rem;      /* Smaller font for buttons */
+    }
+
+.flash-messages {
+    list-style-type: none;
+    padding: 0;
+}
+
+.flash-messages li {
+    color: red; /* or another alert color */
+    margin-bottom: 10px;
+}
+
+.additional-links {
+    margin-top: 15px; /* Space above the additional links */
+}
+
+.additional-links a {
+    margin-right: 10px; /* Space between links */
+    text-decoration: underline; /* Make links more noticeable */
+}
+
+
+.exam-table button:hover {
+    background-color: #45a049;
 }

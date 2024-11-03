@@ -2,21 +2,32 @@
 
 {% block content %}
 <div class="container">
-    <h2>Exam Results</h2>
-    <table>
+    <!-- Exam Details Section -->
+    <h2>Exam Results for "{{ exam.title }}"</h2>
+    <p><strong>Passing Grade:</strong> {{ exam.passing_grade }}%</p>
+    <p><strong>Exam Date:</strong> {{ exam.date_scheduled.strftime('%Y-%m-%d') if exam.date_scheduled else 'N/A' }}</p>
+    <p><strong>Exam Duration:</strong> {{ exam.duration }} minutes</p>
+    <!-- Add more details here if needed -->
+
+    <!-- Results Table -->
+    <table class="table table-bordered mt-3">
         <thead>
             <tr>
-                <th>Student</th>
+                <th>Student Name</th>
+                <th>Email</th>
                 <th>Grade</th>
                 <th>Pass/Fail</th>
+                <th>Submission Date</th>
             </tr>
         </thead>
         <tbody>
             {% for result in results %}
             <tr>
-                <td>{{ result.user_id }}</td> <!-- You can expand to show student details -->
+                <td>{{ result.first_name }} {{ result.last_name }}</td>
+                <td>{{ result.email_address }}</td>
                 <td>{{ result.grade }}%</td>
                 <td>{{ 'Pass' if result.pass_or_fail else 'Fail' }}</td>
+                <td>{{ result.submission_date.strftime('%Y-%m-%d %H:%M:%S') if result.submission_date else 'N/A' }}</td>
             </tr>
             {% endfor %}
         </tbody>

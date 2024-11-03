@@ -1,0 +1,68 @@
+{% extends "base_student.html" %}
+
+{% block content %}
+    <h2>My Courses</h2>
+    {% if courses %}
+        <ul>
+            {% for course in courses %}
+                <li>
+                    <h3>{{ course.name }}</h3>
+                    <p>{{ course.description }}</p>
+                    <h4>Upcoming Exams:</h4>
+                    {% if upcoming_exams[course.id] %}
+                        <ul>
+                            {% for exam in upcoming_exams[course.id] %}
+                                <li>
+                                    <strong>{{ exam.title }}</strong> - Scheduled on {{ exam.date_scheduled.strftime('%Y-%m-%d') }} for {{ exam.duration }} minutes.
+
+                                    {% if exam.id in booked_exams %}
+                                        <p><em>You have already booked this exam.</em></p>
+
+                                        {% if exam.id in exam_countdowns %}
+                                            <div>
+                                                <p>Time Remaining: <span id="countdown-{{ exam.id }}"></span></p>
+                                                <button id="take-exam-{{ exam.id }}" disabled>Take Exam</button>
+                                            </div>
+                                            <script>
+                                                // Set the countdown timer
+                                                let countdownTime = {{ exam_countdowns[exam.id].total_seconds() }};
+                                                const countdownDisplay = document.getElementById('countdown-{{ exam.id }}');
+                                                const takeExamButton = document.getElementById('take-exam-{{ exam.id }}');
+
+                                                const countdown = setInterval(() => {
+                                                    const days = Math.floor(countdownTime / (3600 * 24));
+                                                    const hours = Math.floor((countdownTime % (3600 * 24)) / 3600);
+                                                    const minutes = Math.floor((countdownTime % 3600) / 60);
+                                                    const seconds = Math.round(countdownTime % 60);
+
+                                                    countdownDisplay.textContent = `${days}d ${hours}:${minutes}:${seconds}`;
+
+                                                    // Enable button when countdown reaches zero
+                                                    if (countdownTime <= 0) {
+                                                        clearInterval(countdown);
+                                                        countdownDisplay.textContent = "Time's up!";
+                                                        takeExamButton.disabled = false; // Enable the button
+                                                    }
+
+                                                    countdownTime--;
+                                                }, 1000);
+                                            </script>
+                                        {% endif %}
+                                    {% else %}
+                                        <form action="{{ url_for('book_exam', exam_id=exam.id) }}" method="POST">
+                                            <button type="submit">Book Exam</button>
+                                        </form>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No upcoming exams for this course.</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You are not registered for any courses.</p>
+    {% endif %}
+{% endblock %}

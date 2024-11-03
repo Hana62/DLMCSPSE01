@@ -1,15 +1,11 @@
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
-from flask import current_app as app
-from flask import render_template, request, redirect, url_for, flash
-from .models import User, Course, Exam, Question, Answer, Evaluation, ExamQuestion
+from flask import current_app as app, jsonify
 from . import db, bcrypt
-from datetime import datetime
-
+from datetime import datetime, date
 import random
-from flask import render_template, request, redirect, url_for, flash
-from .models import User, Course, Exam, Question, Answer, ExamQuestion
-from . import db
-from flask_login import login_required, current_user
+from .models import User, Course, UserCourse, Exam, Question, Answer, ExamQuestion, ExamBooking, Response, Evaluation
+from flask import flash, redirect, url_for, render_template, request
+
 
 # Ensure imports are not duplicated
 from werkzeug.security import check_password_hash
@@ -54,7 +50,7 @@ def logout():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('login.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -85,14 +81,21 @@ def register():
     return render_template('register.html')
 
 
-@app.route('/admin')
-@login_required
-def admin():
-    if current_user.role != 'Teacher':  # Assuming role is used consistently here
-        return redirect(url_for('index'))
-    # Admin panel logic
-    return render_template('admin.html')
 
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email_address=email).first()  # Use email_address field to find user
+        if user:
+            # Here you would implement the logic to send a password reset email
+            # e.g., send_password_reset_email(user)
+            flash('An email with password reset instructions has been sent.', 'info')
+            return redirect(url_for('login'))  # Redirect back to login page
+        else:
+            flash('No account associated with this email.', 'danger')
+
+    return render_template('forgot_password.html')  # Create this template
 
 @app.route('/add_question/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -227,11 +230,7 @@ def delete_question(question_id):
 
 
 
-@app.route('/take_exam/<int:exam_id>', methods=['GET', 'POST'])
-@login_required
-def take_exam(exam_id):
-    # Student taking exam logic
-    pass
+
 
 
 @app.route('/grade_exam/<int:exam_id>', methods=['POST'])
@@ -246,21 +245,6 @@ def grade_exam(exam_id):
 def results(exam_id):
     # Show exam results logic
     pass
-
-
-@app.route('/student_panel')
-@login_required  # Ensure this route is protected for logged-in users
-def student_panel():
-    return render_template('student_panel.html')  # Ensure template exists
-
-
-# @app.route('/teacher_panel')
-# @login_required
-# def teacher_panel():
-#     # Assuming you have a Course model and you want to show all courses
-#     courses = Course.query.all()  # Fetch courses from the database
-#     return render_template('teacher_panel.html', courses=courses)  # Pass the courses to the template
-#
 
 
 # Ensure the app is initialized in __init__.py or app.py
@@ -314,8 +298,25 @@ def teacher_panel():
     exams = Exam.query.filter_by(created_by=current_user.id).all()
     results = Evaluation.query.filter_by(course_id=current_user.id).all()  # Student evaluations
 
-    return render_template('teacher_panel.html', courses=courses, exams=exams, results=results)
+    # Collect statistics for each exam, including course name
+    exam_stats = []
+    for exam in exams:
+        registered_students_count = ExamBooking.query.filter_by(exam_id=exam.id).count()
+        students_taken_exam = Evaluation.query.filter_by(exam_id=exam.id).count()
+        students_passed_exam = Evaluation.query.filter_by(exam_id=exam.id, pass_or_fail=True).count()
 
+        # Fetch the course associated with the exam
+        course = Course.query.get(exam.course_id)
+
+        exam_stats.append({
+            'exam': exam,
+            'course_name': course.name if course else "N/A",  # Include course name here
+            'registered_count': registered_students_count,
+            'taken_count': students_taken_exam,
+            'passed_count': students_passed_exam
+        })
+
+    return render_template('teacher_panel.html', courses=courses, exams=exams, exam_stats=exam_stats)
 
 # View all Courses of the teacher
 @app.route('/teacher_panel/courses')
@@ -369,11 +370,6 @@ def delete_exam(exam_id):
         flash("Exam not found.", "danger")
     return redirect(url_for('manage_exams', course_id=exam.course_id))
 
-# Route to manage exams
-# @app.route('/teacher_panel/manage_exams', methods=['GET'])
-# def manage_exams():
-#     exams = Exam.query.all()
-#     return render_template('manage_exams.html', exams=exams)
 
 # New route to view questions for a specific exam
 @app.route('/teacher_panel/exam_questions/<int:exam_id>', methods=['GET'])
@@ -407,7 +403,6 @@ def manage_exam_questions(exam_id):
     return render_template('manage_exam_questions.html', questions=questions)
 
 
-# View student results for an exam
 @app.route('/teacher_panel/results/<int:exam_id>')
 @login_required
 def view_results(exam_id):
@@ -415,10 +410,22 @@ def view_results(exam_id):
         flash('Access Denied', 'danger')
         return redirect(url_for('index'))
 
-    results = Evaluation.query.filter_by(exam_id=exam_id).all()
-    return render_template('view_results.html', results=results)
+    # Fetch the exam details
+    exam = Exam.query.filter_by(id=exam_id).first()
+    if not exam:
+        flash('Exam not found.', 'danger')
+        return redirect(url_for('teacher_panel'))
 
-# Route to create an exam
+    # Fetch evaluation results with user and exam details included
+    results = (
+        Evaluation.query
+        .filter_by(exam_id=exam_id)
+        .join(User, Evaluation.user_id == User.id)
+        .add_columns(User.first_name, User.last_name, User.email_address, Evaluation.grade, Evaluation.pass_or_fail, Evaluation.submission_date)
+        .all()
+    )
+
+    return render_template('view_results.html', results=results, exam=exam)
 # Route to create an exam
 @app.route('/teacher_panel/create_exam/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -478,3 +485,279 @@ def create_exam(course_id):
 
     return render_template('create_exam.html', course=course)
 
+
+@app.route('/student_panel')
+@login_required
+def student_panel():
+    # Show a simple student dashboard
+    return render_template('student_panel.html')
+
+
+@app.route('/student/courses', methods=['GET'])
+@login_required
+def available_courses():
+    if current_user.role != 'Student':
+        flash('Access Denied', 'danger')
+        return redirect(url_for('index'))
+
+    # Fetch courses with at least one upcoming exam
+    upcoming_exams = db.session.query(Course).join(Exam).filter(Exam.date_scheduled >= date.today()).all()
+
+    # Fetch the student's registered courses
+    registered_course_ids = db.session.query(UserCourse.course_id).filter(UserCourse.user_id == current_user.id).all()
+    registered_course_ids = [course_id for (course_id,) in registered_course_ids]  # Unpack the result into a list
+
+    return render_template('student_courses.html', courses=upcoming_exams, registered_course_ids=registered_course_ids)
+
+@app.route('/student/register_course/<int:course_id>', methods=['POST'])
+@login_required
+def register_course(course_id):
+    if current_user.role != 'Student':
+        flash('Access Denied', 'danger')
+        return redirect(url_for('index'))
+
+    # Check if the student is already registered for the course
+    existing_registration = UserCourse.query.filter_by(user_id=current_user.id, course_id=course_id).first()
+
+    if existing_registration:
+        flash('You are already registered for this course.', 'info')
+    else:
+        # Register the student for the course
+        new_registration = UserCourse(user_id=current_user.id, course_id=course_id)
+        db.session.add(new_registration)
+        db.session.commit()
+        flash('You have been successfully registered for the course.', 'success')
+
+    return redirect(url_for('available_courses'))
+
+
+
+@app.route('/student/my_courses', methods=['GET'])
+@login_required
+def my_courses():
+    if current_user.role != 'Student':
+        flash('Access Denied', 'danger')
+        return redirect(url_for('index'))
+
+    # Get the student's registered courses
+    registered_courses = db.session.query(Course).join(UserCourse).filter(UserCourse.user_id == current_user.id).all()
+
+    # Fetch upcoming exams for those courses
+    upcoming_exams = {}
+    booked_exams = set()
+    exam_countdowns = {}
+    completed_exams = set()  # Track exams that have been completed
+
+    for course in registered_courses:
+        exams = Exam.query.filter(Exam.course_id == course.id, Exam.date_scheduled >= date.today()).all()
+        upcoming_exams[course.id] = exams
+
+        for exam in exams:
+            # Check if there's an evaluation for this exam by the current student
+            evaluation = Evaluation.query.filter_by(user_id=current_user.id, exam_id=exam.id).first()
+            if evaluation:
+                # Mark as completed if evaluation exists
+                completed_exams.add(exam.id)
+                continue  # Skip further checks if exam is already taken
+
+            # Fetch booked exams for the current student
+            booking = ExamBooking.query.filter_by(user_id=current_user.id, exam_id=exam.id).first()
+            if booking:
+                booked_exams.add(exam.id)
+
+                # Calculate countdown
+                time_remaining = exam.date_scheduled - datetime.now()
+                exam_countdowns[exam.id] = time_remaining
+
+    return render_template(
+        'student_my_courses.html',
+        courses=registered_courses,
+        upcoming_exams=upcoming_exams,
+        booked_exams=booked_exams,
+        exam_countdowns=exam_countdowns,
+        completed_exams=completed_exams  # Pass completed exams to the template
+    )
+
+
+@app.route('/student/book_exam/<int:exam_id>', methods=['POST'])
+@login_required
+def book_exam(exam_id):
+    # Fetch the exam from the database
+    exam = Exam.query.get_or_404(exam_id)
+
+    # Check if the current user is a student
+    if current_user.role != 'Student':
+        flash("Only students can book exams.", "danger")
+        return redirect(url_for('index'))
+
+    # Check if the student is enrolled in the course related to the exam
+    user_course = UserCourse.query.filter_by(user_id=current_user.id, course_id=exam.course_id).first()
+    if not user_course:
+        flash("You are not enrolled in this course and cannot book the exam.", "danger")
+        return redirect(url_for('student_panel'))
+
+    # Check if the exam is in the past or already started
+    if datetime.strftime(exam.date_scheduled, '%Y-%m-%d') < datetime.strftime(date.today(), '%Y-%m-%d'):
+        flash("This exam has already started or is in the past.", "danger")
+        return redirect(url_for('student_panel'))
+
+    # Check if the student has already booked this exam
+    existing_booking = ExamBooking.query.filter_by(user_id=current_user.id, exam_id=exam_id).first()
+    if existing_booking:
+        flash("You have already booked this exam.", "danger")
+        return redirect(url_for('student_panel'))
+
+    # Check if there is enough capacity (optional)
+    max_capacity = 50  # Example, if you have capacity logic
+    current_bookings = ExamBooking.query.filter_by(exam_id=exam_id).count()
+    if current_bookings >= max_capacity:
+        flash("This exam is fully booked.", "danger")
+        return redirect(url_for('student_panel'))
+
+    # Create a new exam booking
+    booking = ExamBooking(user_id=current_user.id, exam_id=exam_id)
+    db.session.add(booking)
+    db.session.commit()
+
+    # Send email confirmation (optional)
+    # send_exam_confirmation_email(current_user.email_address, exam)
+
+    flash("You have successfully booked the exam!", "success")
+    return redirect(url_for('student_panel'))
+
+
+
+
+
+
+
+
+@app.route('/take_exam/<int:exam_id>', methods=['GET', 'POST'])
+@login_required
+def take_exam(exam_id):
+    # Check if the user is registered for the course of this exam
+    exam = Exam.query.get_or_404(exam_id)
+    course_id = exam.course_id
+
+    # Ensure the user is registered for the course
+    is_registered = UserCourse.query.filter_by(user_id=current_user.id, course_id=course_id).first()
+    if not is_registered:
+        flash("You are not registered for any courses.")
+        return redirect(url_for('student_dashboard'))
+
+    # Get the questions for the exam
+    exam_questions = ExamQuestion.query.filter_by(exam_id=exam_id).all()
+
+    # Retrieve the question details for each exam question
+    questions = []
+    for exam_question in exam_questions:
+        question = Question.query.get(exam_question.question_id)
+        if question:
+            questions.append(question)
+
+    # Pass duration in seconds
+    duration_seconds = exam.duration * 60
+
+    return render_template('take_exam.html', exam=exam, questions=questions, exam_duration=duration_seconds)
+
+
+
+@app.route('/submit_exam/<int:exam_id>', methods=['POST'])
+@login_required
+def submit_exam(exam_id):
+    exam = Exam.query.get_or_404(exam_id)
+    exam_questions = ExamQuestion.query.filter_by(exam_id=exam_id).all()
+
+    correct_count = 0
+    total_questions = len(exam_questions)
+
+    # Process each question and user's answer
+    for exam_question in exam_questions:
+        question_id = exam_question.question_id
+        user_answer = request.form.get(f'question_{question_id}')
+
+        # Check if the answer is correct
+        if user_answer:
+            # Save the user's response
+            response = Response(
+                exam_id=exam.id,
+                user_id=current_user.id,
+                question_id=question_id,
+                response=user_answer
+            )
+            db.session.add(response)
+
+            # Check if the user's answer is correct
+            correct_answer = Answer.query.filter_by(question_id=question_id, is_correct=True).first()
+            if correct_answer and user_answer == str(correct_answer.id):  # Compare the user's answer ID with the correct one
+                correct_count += 1
+
+    db.session.commit()
+
+    # Calculate the grade
+    grade = (correct_count / total_questions) * 100 if total_questions > 0 else 0
+    passed = grade >= exam.passing_grade
+
+    # Store the evaluation with submission date
+    evaluation = Evaluation(
+        user_id=current_user.id,
+        exam_id=exam.id,
+        course_id=exam.course_id,
+        answered_count=total_questions,
+        corrected_count=correct_count,
+        grade=grade,
+        pass_or_fail=passed,
+        submission_date=datetime.utcnow()  # Set the current date and time as submission_date
+    )
+    db.session.add(evaluation)
+    db.session.commit()
+
+    flash(f"Your exam has been submitted successfully. Grade: {grade:.2f}%.", "success")
+    return redirect(url_for('student_panel'))
+
+
+@app.route('/exam_results')
+@login_required
+def exam_results():
+    # Fetch evaluations for the current user and join related tables
+    evaluations = db.session.query(
+        Evaluation,
+        Exam.title,
+        Exam.date_scheduled,
+        ExamBooking.booking_date
+    ).join(Exam, Evaluation.exam_id == Exam.id) \
+     .join(ExamBooking, (Evaluation.exam_id == ExamBooking.exam_id) & (Evaluation.user_id == ExamBooking.user_id)) \
+     .filter(Evaluation.user_id == current_user.id).all()
+
+    return render_template('exam_results.html', evaluations=evaluations)
+
+
+@app.route('/exam_questions_answers/<int:exam_id>', methods=['GET'])
+@login_required
+def exam_questions_answers(exam_id):
+    exam_questions = ExamQuestion.query.filter_by(exam_id=exam_id).all()
+    questions_data = []
+
+    for exam_question in exam_questions:
+        question = Question.query.get(exam_question.question_id)
+        user_response = Response.query.filter_by(
+            exam_id=exam_id,
+            user_id=current_user.id,
+            question_id=question.id
+        ).first()
+
+        # Gather all answers for this question
+        answers = [{'answer_text': answer.answer_text,
+                    'is_correct': answer.is_correct,
+                    'is_selected': user_response.response == answer.id if user_response else False,
+                    'answer_id': answer.id}  # Store the answer ID for comparison
+                   for answer in question.answers]
+
+        questions_data.append({
+            'question_text': question.question_text,
+            'id': question.id,  # Store question id to use in the front-end
+            'answers': answers,
+            'selected_answer_id': user_response.response if user_response else None  # Store the selected answer ID
+        })
+
+    return jsonify({'questions': questions_data})
