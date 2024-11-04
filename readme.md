@@ -14,3 +14,6 @@ exam/
 ├── config.py              # Configuration settings
 ├── application.py         # Entry point, renamed from run.py
 └── requirements.txt       # Dependencies list
+
+Please run the following commands:
+python apllication.py
