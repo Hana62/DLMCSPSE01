@@ -14,4 +14,3 @@ exam/
 ├── config.py
 ├── run.py
 ├── requirements.md
-└── wsgi.py
