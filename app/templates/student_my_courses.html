@@ -24,38 +24,59 @@
                                         {% if exam.id in exam_countdowns %}
                                             <div>
                                                 <p>Exam will be available to take on {{ exam.date_scheduled.strftime('%Y-%m-%d') }}.</p>
-                                                <p>Time Remaining: <span id="countdown-{{ exam.id }}"></span></p>
+                                                <p>Time Remaining: <span id="countdown-{{ exam.id }}">Loading...</span></p>
                                                 <button id="take-exam-{{ exam.id }}" disabled>Take Exam</button>
                                             </div>
 
                                             <script>
-                                                // Set the target time for the exam availability
-                                                let examStartDate = new Date('{{ exam.date_scheduled.strftime('%Y-%m-%d') }}T00:00:00');
-                                                let currentTime = new Date();
-                                                let timeRemaining = (examStartDate - currentTime) / 1000;
+                                                (function(examId, examDate) {
+                                                    const countdownDisplay = document.getElementById(`countdown-${examId}`);
+                                                    const takeExamButton = document.getElementById(`take-exam-${examId}`);
 
-                                                const countdownDisplay = document.getElementById('countdown-{{ exam.id }}');
-                                                const takeExamButton = document.getElementById('take-exam-{{ exam.id }}');
+                                                    const examStartDate = new Date(examDate + "T00:00:00").getTime();
+                                                    const currentDate = new Date().getTime();
 
-                                                const countdown = setInterval(() => {
-                                                    if (timeRemaining > 0) {
-                                                        const days = Math.floor(timeRemaining / (3600 * 24));
-                                                        const hours = Math.floor((timeRemaining % (3600 * 24)) / 3600);
-                                                        const minutes = Math.floor((timeRemaining % 3600) / 60);
-                                                        const seconds = Math.floor(timeRemaining % 60);
+                                                    function updateCountdown() {
+                                                        const now = new Date().getTime();
+                                                        const timeRemaining = (examStartDate - now) / 1000;
 
-                                                        countdownDisplay.textContent = `${days}d ${hours}:${minutes}:${seconds}`;
-                                                        timeRemaining--;
-                                                    } else {
-                                                        clearInterval(countdown);
+                                                        if (timeRemaining > 0) {
+                                                            const days = Math.floor(timeRemaining / (3600 * 24));
+                                                            const hours = Math.floor((timeRemaining % (3600 * 24)) / 3600);
+                                                            const minutes = Math.floor((timeRemaining % 3600) / 60);
+                                                            const seconds = Math.floor(timeRemaining % 60);
+
+                                                            countdownDisplay.textContent = `${days}d ${hours}:${minutes}:${seconds}`;
+                                                        } else {
+                                                            clearInterval(interval);
+                                                            countdownDisplay.textContent = "Exam is available!";
+                                                            takeExamButton.disabled = false;
+
+                                                            takeExamButton.addEventListener("click", function() {
+                                                                window.location.href = "{{ url_for('take_exam', exam_id=exam.id) }}".replace(
+                                                                    "{{ exam.id }}",
+                                                                    examId
+                                                                );
+                                                            });
+                                                        }
+                                                    }
+
+                                                    // Initialize countdown
+                                                    if (currentDate >= examStartDate) {
                                                         countdownDisplay.textContent = "Exam is available!";
                                                         takeExamButton.disabled = false;
-                                                    }
-                                                }, 1000);
 
-                                                takeExamButton.addEventListener('click', function() {
-                                                    window.location.href = "{{ url_for('take_exam', exam_id=exam.id) }}";
-                                                });
+                                                        takeExamButton.addEventListener("click", function() {
+                                                            window.location.href = "{{ url_for('take_exam', exam_id=exam.id) }}".replace(
+                                                                "{{ exam.id }}",
+                                                                examId
+                                                            );
+                                                        });
+                                                    } else {
+                                                        updateCountdown();
+                                                        const interval = setInterval(updateCountdown, 1000);
+                                                    }
+                                                })({{ exam.id }}, "{{ exam.date_scheduled.strftime('%Y-%m-%d') }}");
                                             </script>
                                         {% endif %}
                                     {% else %}

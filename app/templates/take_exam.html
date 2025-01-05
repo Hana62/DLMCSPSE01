@@ -30,7 +30,7 @@
 </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const examId = {{ exam.id }};
         const examDuration = {{ exam_duration }}; // Duration in seconds
         const localStorageKey = `exam_${examId}_start_time`;
@@ -60,7 +60,14 @@
                 clearInterval(interval);
                 timerDisplay.textContent = "Time's up!";
                 localStorage.removeItem(localStorageKey); // Clear localStorage
-                document.getElementById("examForm").submit(); // Auto-submit
+                
+                // Check if the form exists and auto-submit it
+                const examForm = document.getElementById("examForm");
+                if (examForm) {
+                    examForm.submit();
+                } else {
+                    console.error("Exam form not found!");
+                }
             }
         }
 
